@@ -6,6 +6,8 @@ import { SidebarDrawerProvider } from "../contexts/SideBarDrawerContext";
 import { makeServer } from "../services/mirage";
 import { QueryClientProvider, QueryClient } from "react-query";
 
+import { ReactQueryDevtools } from "react-query/devtools";
+
 // Runs fake backend API if env is for development
 if (process.env.NODE_ENV === "development") {
   makeServer();
@@ -21,6 +23,8 @@ export default function App({ Component, pageProps }: AppProps) {
           <Component {...pageProps} />
         </SidebarDrawerProvider>
       </ChakraProvider>
+
+      <ReactQueryDevtools />
     </QueryClientProvider>
   );
 }
