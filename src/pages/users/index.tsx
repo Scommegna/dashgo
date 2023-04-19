@@ -21,8 +21,7 @@ import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
 
-import { useQuery } from "react-query";
-import { api } from "../../services/api";
+import { useUsers } from "../../services/hooks/useUsers";
 
 interface User {
   id: number;
@@ -33,30 +32,7 @@ interface User {
 
 export default function UserList() {
   // Query to store data in cache and updates it
-  const { data, isLoading, isFetching, error } = useQuery(
-    "users",
-    async () => {
-      const { data } = await api.get("users");
-
-      const users = data.users.map((user: User) => {
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          createdAt: new Date(user.createdAt).toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          }),
-        };
-      });
-
-      return users;
-    },
-    {
-      staleTime: 1000 * 5,
-    }
-  );
+  const { data, isLoading, isFetching, error } = useUsers();
 
   // Checks breakpoint values for design responsivity
   const isWideVersion = useBreakpointValue({
@@ -115,7 +91,7 @@ export default function UserList() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {data.map((user: User) => {
+                  {data?.map((user: User) => {
                     return (
                       <Tr key={user.id}>
                         <Td px={["4", "4", "6"]}>
