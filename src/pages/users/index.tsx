@@ -14,6 +14,7 @@ import {
   Thead,
   Tr,
   useBreakpointValue,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import Pagination from "../../components/Pagination";
@@ -22,6 +23,9 @@ import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
 
 import { useUsers } from "../../services/hooks/useUsers";
+import { useState } from "react";
+import { queryClient } from "../../services/queryClient";
+import { api } from "../../services/api";
 
 interface User {
   id: number;
@@ -30,9 +34,29 @@ interface User {
   createdAt: any;
 }
 
+// Prefetches data based on event
+async function handlePrefetchUser(userId: number) {
+  await queryClient.prefetchQuery(
+    ["user", userId],
+    async () => {
+      const response = await api.get(`users/${userId}`);
+
+      return response.data;
+    },
+    {
+      staleTime: 1000 * 60 * 10, //ten minutes
+    }
+  );
+}
+
 export default function UserList() {
+  // State to signalize actual page of pagination
+  const [page, setPage] = useState(1);
+
   // Query to store data in cache and updates it
-  const { data, isLoading, isFetching, error } = useUsers();
+  const { data, isLoading, isFetching, error } = useUsers(page);
+
+  console.log(data);
 
   // Checks breakpoint values for design responsivity
   const isWideVersion = useBreakpointValue({
@@ -91,7 +115,7 @@ export default function UserList() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {data?.map((user: User) => {
+                  {data?.users.map((user: User) => {
                     return (
                       <Tr key={user.id}>
                         <Td px={["4", "4", "6"]}>
@@ -99,7 +123,12 @@ export default function UserList() {
                         </Td>
                         <Td>
                           <Box>
-                            <Text fontWeight="bold">{user.name}</Text>
+                            <ChakraLink
+                              color="purple.400"
+                              onMouseEnter={() => handlePrefetchUser(user.id)}
+                            >
+                              <Text fontWeight="bold">{user.name}</Text>
+                            </ChakraLink>
                             <Text fontSize="sm" color="gray.300">
                               {user.email}
                             </Text>
@@ -129,8 +158,8 @@ export default function UserList() {
 
               <Pagination
                 totalCountOfRegisters={200}
-                currentPage={5}
-                onPageChange={() => {}}
+                currentPage={page}
+                onPageChange={setPage}
               />
             </>
           )}
@@ -139,3 +168,5 @@ export default function UserList() {
     </Box>
   );
 }
+
+// arrumar total number of registers
