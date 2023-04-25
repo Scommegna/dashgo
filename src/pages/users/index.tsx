@@ -22,10 +22,11 @@ import Header from "../../components/Header";
 import Sidebar from "../../components/Sidebar";
 import Link from "next/link";
 
-import { useUsers } from "../../services/hooks/useUsers";
+import { useUsers, getUsers } from "../../services/hooks/useUsers";
 import { useState } from "react";
 import { queryClient } from "../../services/queryClient";
 import { api } from "../../services/api";
+import { GetServerSideProps } from "next";
 
 interface User {
   id: number;
@@ -49,12 +50,14 @@ async function handlePrefetchUser(userId: number) {
   );
 }
 
-export default function UserList() {
+export default function UserList({ users, totalCount }) {
   // State to signalize actual page of pagination
   const [page, setPage] = useState(1);
 
   // Query to store data in cache and updates it
-  const { data, isLoading, isFetching, error } = useUsers(page);
+  const { data, isLoading, isFetching, error } = useUsers(page, {
+    initalData: users,
+  });
 
   console.log(data);
 
@@ -157,7 +160,7 @@ export default function UserList() {
               </Table>
 
               <Pagination
-                totalCountOfRegisters={200}
+                totalCountOfRegisters={totalCount}
                 currentPage={page}
                 onPageChange={setPage}
               />
@@ -170,3 +173,14 @@ export default function UserList() {
 }
 
 // arrumar total number of registers
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const { users, totalCount } = await getUsers(1);
+
+  return {
+    props: {
+      users,
+      totalCount,
+    },
+  };
+};
